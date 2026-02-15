@@ -1,58 +1,76 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useFavoriteStore } from "../../store/favoriteStore";
 
 export default function FoodCard({ food }) {
-  const toggleFav = useFavoriteStore((s) => s.toggleFav);
-  const isFav = useFavoriteStore((s) => s.isFav);
+  const [fav, setFav] = useState(false);
 
-  const id = food?.id ?? food?._id;
-  const name = food?.name ?? "Unnamed";
-  const desc = food?.description ?? food?.desc ?? "No description";
-  const price = food?.price ?? "—";
-  const image = food?.image || food?.thumbnail || food?.photo || "";
+  const id = food?.id ?? food?._id ?? 1;
+  const name = food?.name ?? "Food Name";
+  const desc =
+    food?.description ??
+    "Traditional Khmer curry steamed in banana leaf";
+  const price = food?.price ?? 12.5;
+
+  // image from API (if exists) else placeholder
+  const img =
+    food?.image_url ||
+    food?.image ||
+    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=1200&q=80&auto=format&fit=crop";
 
   return (
-    <div className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-soft transition">
+    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
       <Link to={`/food/${id}`}>
-        <div className="h-40 bg-gray-100 overflow-hidden">
-          {image ? (
-            <img className="w-full h-full object-cover" src={image} alt={name} />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-              No image
-            </div>
-          )}
+        <div className="h-40 w-full overflow-hidden">
+          <img
+            src={img}
+            alt={name}
+            className="h-full w-full object-cover"
+          />
         </div>
       </Link>
 
       <div className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="font-bold text-sm">{name}</h3>
+        {/* title + heart */}
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="font-bold text-gray-900 text-sm leading-tight">
+            {name}
+          </h3>
 
           <button
-            onClick={() => toggleFav(id)}
-            className="w-9 h-9 rounded-xl border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition"
-            aria-label="Favorite"
             type="button"
+            onClick={() => setFav((v) => !v)}
+            className="text-gray-400 hover:text-primary transition"
+            aria-label="favorite"
+            title="favorite"
           >
-            <span className="text-primary text-lg leading-none">
-              {isFav(id) ? "❤" : "♡"}
-            </span>
+            {fav ? (
+              // filled heart
+              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-primary">
+                <path d="M12 21s-7.3-4.5-9.6-8.7C.7 9 .9 5.9 3.3 4.2 5.3 2.8 8 3.3 9.6 5c.9.9 1.6 2 2.4 3 .8-1 1.5-2.1 2.4-3 1.6-1.7 4.3-2.2 6.3-.8 2.4 1.7 2.6 4.8.9 8.1C19.3 16.5 12 21 12 21z" />
+              </svg>
+            ) : (
+              // outline heart
+              <svg
+                viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M20.8 4.6c-1.8-1.7-4.7-1.5-6.4.3L12 7.4 9.6 4.9C7.9 3.1 5 2.9 3.2 4.6c-2 1.9-2 5.1 0 7l8.8 8.7 8.8-8.7c2-1.9 2-5.1 0-7z" />
+              </svg>
+            )}
           </button>
         </div>
 
-        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{desc}</p>
+        {/* description */}
+        <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+          {desc}
+        </p>
 
-        <div className="mt-4 flex items-end justify-between">
-          <div className="text-sm font-extrabold">
-            {typeof price === "number" ? `$${price.toFixed(2)}` : price}
-          </div>
-
-          {/* rating UI (optional) */}
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <span className="text-amber-400">★</span>
-            <span>{food?.rating ?? "4.8"}</span>
-          </div>
+        {/* price */}
+        <div className="mt-4 font-extrabold text-primary text-sm">
+          ${Number(price).toFixed(2)}
         </div>
       </div>
     </div>

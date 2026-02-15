@@ -89,73 +89,66 @@ export default function Home() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-bold mb-6">Discover Food</h1>
+  <h1 className="text-3xl font-extrabold text-gray-900 mb-6">
+    Discover Food
+  </h1>
 
-      {/* Search */}
-      <div className="mb-6">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search food..."
-          className="w-full sm:w-96 border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-      </div>
+  {/* Category chips */}
+  <div className="flex items-center gap-3 mb-8 flex-wrap">
+    {safeCategories.map((c) => {
+      const id = c?.id ?? c?._id ?? c?.categoryId;
+      const isActive = (activeCat?.id ?? activeCat?._id) === id;
 
-      {/* Category chips */}
-      <div className="flex gap-3 mb-8 flex-wrap">
-        {safeCategories.map((c) => {
-          const id = c?.id ?? c?._id ?? c?.categoryId;
-          const isActive = (activeCat?.id ?? activeCat?._id) === id;
-
-          return (
-            <button
-              key={id ?? Math.random()}
-              onClick={() => setActiveCat(c)}
-              className={
-                isActive
-                  ? "bg-primary text-white px-4 py-1 rounded-full text-sm"
-                  : "bg-gray-100 px-4 py-1 rounded-full text-sm hover:bg-gray-200 transition"
-              }
-              type="button"
-            >
-              {c?.name ?? "Category"}
-            </button>
-          );
-        })}
-
-        {/* All */}
+      return (
         <button
-          onClick={() => setActiveCat(null)}
+          key={id ?? Math.random()}
+          onClick={() => setActiveCat(c)}
           className={
-            !activeCat
-              ? "bg-primary text-white px-4 py-1 rounded-full text-sm"
-              : "bg-gray-100 px-4 py-1 rounded-full text-sm hover:bg-gray-200 transition"
+            isActive
+              ? "bg-primary text-white px-5 py-2 rounded-full text-xs font-semibold shadow-sm"
+              : "bg-gray-100 text-gray-700 px-5 py-2 rounded-full text-xs font-semibold hover:bg-gray-200 transition"
           }
           type="button"
         >
-          All
+          {c?.name ?? "Category"}
         </button>
-      </div>
+      );
+    })}
 
-      {/* Foods grid */}
-      {filteredFoods.length === 0 ? (
-        <div className="border border-dashed border-gray-200 rounded-2xl p-8 text-center text-gray-500">
-          No foods found.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredFoods.map((food) => (
-            <FoodCard key={food?.id ?? food?._id ?? Math.random()} food={food} />
-          ))}
-        </div>
-      )}
+    {/* All */}
+    <button
+      onClick={() => setActiveCat(null)}
+      className={
+        !activeCat
+          ? "bg-primary text-white px-5 py-2 rounded-full text-xs font-semibold shadow-sm"
+          : "bg-gray-100 text-gray-700 px-5 py-2 rounded-full text-xs font-semibold hover:bg-gray-200 transition"
+      }
+      type="button"
+    >
+      All
+    </button>
+  </div>
 
-      <div className="mt-10 text-sm text-gray-500">
-        Test route:{" "}
-        <Link className="text-primary font-semibold" to="/category/1">
-          /category/1
-        </Link>
-      </div>
+  {/* Foods grid */}
+  {filteredFoods.length === 0 ? (
+    <div className="border border-dashed border-gray-200 rounded-2xl p-10 text-center text-gray-500">
+      No foods found.
     </div>
+  ) : (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {filteredFoods.map((food) => (
+        <FoodCard key={food?.id ?? food?._id ?? Math.random()} food={food} />
+      ))}
+    </div>
+  )}
+
+  <div className="mt-10 text-sm text-gray-500">
+    Test route:{" "}
+    <Link className="text-primary font-semibold" to="/category/1">
+      /category/1
+    </Link>
+  </div>
+</div>
+
   );
 }
