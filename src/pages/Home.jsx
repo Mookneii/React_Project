@@ -1,8 +1,9 @@
+import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
-import { getCategories } from "../api/categories.api";
-import { getFoods } from "../api/foods.api";
 import FoodCard from "../components/food/FoodCard";
 import { Link } from "react-router-dom";
+
+const FOODS_URL = "https://pteahbay-api.cheatdev.online/food-items";
 
 export default function Home() {
   const [foods, setFoods] = useState([]);
@@ -18,58 +19,62 @@ export default function Home() {
         setLoading(true);
         setErr("");
 
-        // You can also pass params: getFoods({ search: "...", page: 1, limit: 20 })
-        const [cRes, fRes] = await Promise.all([getCategories(), getFoods()]);
+        const res = await axios.get(FOODS_URL, { timeout: 15000 });
 
-        // ---- Categories: try many possible shapes safely ----
-        const rawCats = cRes?.data?.data ?? cRes?.data ?? [];
-        const cats = Array.isArray(rawCats)
-          ? rawCats
-          : Array.isArray(rawCats?.items)
-          ? rawCats.items
+        // Swagger example shows array directly
+        const fs = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data?.items)
+          ? res.data.items
+          : Array.isArray(res.data?.data?.items)
+          ? res.data.data.items
           : [];
 
-        // ---- Foods: Swagger list is usually data.items ----
-        const rawFoods =
-          fRes?.data?.data?.items ?? fRes?.data?.items ?? fRes?.data?.data ?? fRes?.data ?? [];
-        const fs = Array.isArray(rawFoods) ? rawFoods : [];
-
-        setCategories(cats);
         setFoods(fs);
 
-        // default active category (first one)
+        // Build cuisine categories from foods
+        const cuisines = Array.from(
+          new Set(fs.map((f) => f?.cuisine).filter(Boolean))
+        );
+
+        const cats = cuisines.map((name) => ({
+          id: name, // use name as id
+          name,
+        }));
+
+        setCategories(cats);
         if (cats.length > 0) setActiveCat(cats[0]);
       } catch (e) {
-        console.log("Home load error:", e);
-        setErr(e?.message || "Failed to load foods/categories.");
+        console.log("Foods load error:", e);
+        setErr(
+          e?.response
+            ? `Request failed: ${e.response.status} ${e.response.statusText}`
+            : e?.message || "Failed to load foods."
+        );
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  const filteredFoods = useMemo(() => {
-  const list = Array.isArray(foods) ? foods : [];
-  const text = q.trim().toLowerCase();
-
-  return list.filter((f) => {
-    const name = String(f?.name ?? "").toLowerCase();
-    const matchText = !text || name.includes(text);
-
-    if (!activeCat) return matchText;
-
-    const catId = activeCat?.id ?? activeCat?._id;
-    const foodCat =
-      f?.categoryId ?? f?.category_id ?? f?.category?.id ?? f?.category?._id ?? f?.category;
-
-    const matchCat =
-      catId == null || foodCat == null ? true : String(foodCat) === String(catId);
-
-    return matchText && matchCat;
-  });
-}, [foods, q, activeCat]);
-
   const safeCategories = Array.isArray(categories) ? categories : [];
+  const safeFoods = Array.isArray(foods) ? foods : [];
+
+  const filteredFoods = useMemo(() => {
+    const text = q.trim().toLowerCase();
+
+    return safeFoods.filter((f) => {
+      const name = String(f?.name ?? "").toLowerCase();
+      const matchText = !text || name.includes(text);
+
+      if (!activeCat) return matchText;
+
+      const cuisine = f?.cuisine;
+      const matchCuisine = cuisine ? cuisine === activeCat.name : true;
+
+      return matchText && matchCuisine;
+    });
+  }, [safeFoods, q, activeCat]);
 
   if (loading) {
     return (
@@ -82,73 +87,68 @@ export default function Home() {
   if (err) {
     return (
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="text-red-500 font-semibold">{err}</div>
+        <div className="text-red-600 font-semibold">{err}</div>
       </div>
     );
   }
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
-  <h1 className="text-3xl font-extrabold text-gray-900 mb-6">
-    Discover Food
-  </h1>
+      <h1 className="text-3xl font-extrabold text-gray-900 mb-6">
+        Discover Food
+      </h1>
 
-  {/* Category chips */}
-  <div className="flex items-center gap-3 mb-8 flex-wrap">
-    {safeCategories.map((c) => {
-      const id = c?.id ?? c?._id ?? c?.categoryId;
-      const isActive = (activeCat?.id ?? activeCat?._id) === id;
+      
 
-      return (
+      {/* Category chips (from cuisine) */}
+      <div className="flex items-center gap-3 mb-8 flex-wrap">
+        {safeCategories.map((c) => {
+          const isActive = activeCat?.id === c.id;
+
+          return (
+            <button
+              key={c.id}
+              onClick={() => setActiveCat(c)}
+              className={
+                isActive
+                  ? "bg-orange-500 text-white px-5 py-2 rounded-full text-xs font-semibold shadow-sm"
+                  : "bg-gray-100 text-gray-700 px-5 py-2 rounded-full text-xs font-semibold hover:bg-gray-200 transition"
+              }
+              type="button"
+            >
+              {c.name}
+            </button>
+          );
+        })}
+
+        {/* All */}
         <button
-          key={id ?? Math.random()}
-          onClick={() => setActiveCat(c)}
+          onClick={() => setActiveCat(null)}
           className={
-            isActive
-              ? "bg-primary text-white px-5 py-2 rounded-full text-xs font-semibold shadow-sm"
+            !activeCat
+              ? "bg-orange-500 text-white px-5 py-2 rounded-full text-xs font-semibold shadow-sm"
               : "bg-gray-100 text-gray-700 px-5 py-2 rounded-full text-xs font-semibold hover:bg-gray-200 transition"
           }
           type="button"
         >
-          {c?.name ?? "Category"}
+          All
         </button>
-      );
-    })}
+      </div>
 
-    {/* All */}
-    <button
-      onClick={() => setActiveCat(null)}
-      className={
-        !activeCat
-          ? "bg-primary text-white px-5 py-2 rounded-full text-xs font-semibold shadow-sm"
-          : "bg-gray-100 text-gray-700 px-5 py-2 rounded-full text-xs font-semibold hover:bg-gray-200 transition"
-      }
-      type="button"
-    >
-      All
-    </button>
-  </div>
+      {/* Foods grid */}
+      {filteredFoods.length === 0 ? (
+        <div className="border border-dashed border-gray-200 rounded-2xl p-10 text-center text-gray-500">
+          No foods found.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {filteredFoods.map((food) => (
+            <FoodCard key={food?.id ?? Math.random()} food={food} />
+          ))}
+        </div>
+      )}
 
-  {/* Foods grid */}
-  {filteredFoods.length === 0 ? (
-    <div className="border border-dashed border-gray-200 rounded-2xl p-10 text-center text-gray-500">
-      No foods found.
+      
     </div>
-  ) : (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {filteredFoods.map((food) => (
-        <FoodCard key={food?.id ?? food?._id ?? Math.random()} food={food} />
-      ))}
-    </div>
-  )}
-
-  <div className="mt-10 text-sm text-gray-500">
-    Test route:{" "}
-    <Link className="text-primary font-semibold" to="/category/1">
-      /category/1
-    </Link>
-  </div>
-</div>
-
   );
 }

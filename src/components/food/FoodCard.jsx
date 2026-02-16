@@ -45,7 +45,7 @@ export default function FoodCard({ food }) {
           >
             {fav ? (
               // filled heart
-              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-primary">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-orange-500">
                 <path d="M12 21s-7.3-4.5-9.6-8.7C.7 9 .9 5.9 3.3 4.2 5.3 2.8 8 3.3 9.6 5c.9.9 1.6 2 2.4 3 .8-1 1.5-2.1 2.4-3 1.6-1.7 4.3-2.2 6.3-.8 2.4 1.7 2.6 4.8.9 8.1C19.3 16.5 12 21 12 21z" />
               </svg>
             ) : (
@@ -69,7 +69,7 @@ export default function FoodCard({ food }) {
         </p>
 
         {/* price */}
-        <div className="mt-4 font-extrabold text-primary text-sm">
+        <div className="mt-4 font-extrabold text-orange-500 text-sm">
           ${Number(price).toFixed(2)}
         </div>
       </div>
