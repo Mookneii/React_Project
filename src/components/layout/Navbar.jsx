@@ -30,7 +30,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-6">
         {/* Left: Logo + Links */}
         <div className="flex items-center gap-8">
-          <div className="text-xl font-extrabold text-primary"><img src="" alt="" /></div>
+          <div className="text-xl font-extrabold text-orange-500"><img src="" alt="" />PteahBay</div>
 
           <nav className="hidden sm:flex items-center gap-6 text-sm">
             <NavLink to="/" className={linkClass}>
@@ -74,7 +74,7 @@ export default function Navbar() {
           >
             <img
               alt="profile"
-              src="https://i.pravatar.cc/80?img=12"
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgDGgxK15fCpe0UseaP0_ZHZaBvZl7cGxbgQ&s"
               className="h-full w-full object-cover"
             />
           </button>

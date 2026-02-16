@@ -5,7 +5,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand + tagline + socials */}
           <div className="space-y-5">
-            <h2 className="text-2xl font-extrabold text-primary">PteahBay</h2>
+            <h2 className="text-2xl font-extrabold text-orange-500">PteahBay</h2>
             <p className="text-sm text-gray-400 leading-relaxed max-w-xs">
               Discover the best food experiences in Cambodia
             </p>

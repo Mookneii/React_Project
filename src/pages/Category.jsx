@@ -4,8 +4,7 @@ import FoodCard from "../components/food/FoodCard";
 
 const FOODS_URL = "https://pteahbay-api.cheatdev.online/food-items";
 
-const norm = (v) =>
-  String(v ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+const norm = (v) => String(v ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 
 export default function Home() {
   const [foods, setFoods] = useState([]);
@@ -24,15 +23,13 @@ export default function Home() {
         setErr("");
 
         const res = await axios.get(FOODS_URL, { timeout: 15000 });
+
+        // API returns array
         const list = Array.isArray(res.data) ? res.data : [];
 
         if (!cancelled) {
           setFoods(list);
-
-          // default cuisine (first one) if exists
-          const firstCuisine = list.find((x) => String(x?.cuisine ?? "").trim())?.cuisine;
-          if (firstCuisine) setActiveCuisine(firstCuisine);
-          else setActiveCuisine("All");
+          setActiveCuisine("All"); // default show all foods
         }
       } catch (e) {
         console.log("Home load error:", e);
@@ -47,7 +44,7 @@ export default function Home() {
     };
   }, []);
 
-  // ✅ make cuisine chips from foods (unique cuisines)
+  // Cuisine chips (unique cuisines from foods)
   const cuisines = useMemo(() => {
     const set = new Set();
     for (const f of foods) {
@@ -57,25 +54,29 @@ export default function Home() {
     return ["All", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
   }, [foods]);
 
-  // ✅ filter + search + sort
+  // Filter + Search + Sort
   const filteredFoods = useMemo(() => {
     const text = norm(q);
     const targetCuisine = norm(activeCuisine);
 
     let list = Array.isArray(foods) ? foods : [];
 
-    // filter by cuisine
+    // cuisine filter
     if (activeCuisine !== "All") {
       list = list.filter((f) => norm(f?.cuisine) === targetCuisine);
     }
 
-    // search by name
+    // search by name (and optional description)
     if (text) {
-      list = list.filter((f) => norm(f?.name).includes(text));
+      list = list.filter((f) => {
+        const name = norm(f?.name);
+        const desc = norm(f?.description);
+        return name.includes(text) || desc.includes(text);
+      });
     }
 
     // sort
-    list = [...list].sort((a, b) => {
+    return [...list].sort((a, b) => {
       if (sort === "price_asc") return (a?.price ?? 0) - (b?.price ?? 0);
       if (sort === "price_desc") return (b?.price ?? 0) - (a?.price ?? 0);
       if (sort === "popularity")
@@ -86,8 +87,6 @@ export default function Home() {
       const db = new Date(b?.created_at ?? 0).getTime();
       return db - da;
     });
-
-    return list;
   }, [foods, activeCuisine, q, sort]);
 
   if (loading) {
@@ -108,7 +107,9 @@ export default function Home() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
-      
+     
+
+    
 
       {/* Top Row: chips + sort */}
       <div className="flex items-start justify-between gap-6 mb-6 flex-wrap">
@@ -116,7 +117,20 @@ export default function Home() {
         <div className="flex gap-3 flex-wrap">
           {cuisines.map((c) => {
             const isActive = c === activeCuisine;
-            
+            return (
+              <button
+                key={c}
+                onClick={() => setActiveCuisine(c)}
+                type="button"
+                className={
+                  isActive
+                    ? "bg-orange-500 text-white px-5 py-2 rounded-full text-xs font-semibold shadow-sm"
+                    : "bg-gray-100 text-gray-700 px-5 py-2 rounded-full text-xs font-semibold hover:bg-gray-200 transition"
+                }
+              >
+                {c}
+              </button>
+            );
           })}
         </div>
 
@@ -135,8 +149,6 @@ export default function Home() {
           </select>
         </div>
       </div>
-
-      
 
       {/* Grid */}
       {filteredFoods.length === 0 ? (
